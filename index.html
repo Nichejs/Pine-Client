@@ -1,0 +1,61 @@
+<html>
+<head>
+<title>Pine - Open Source game</title>
+<link rel="stylesheet" type="text/css" media="all" href="assets/css/main.css" />
+<link rel="icon" href="favicon.ico" type="image/x-icon" />
+</head>
+<body>
+	<div align="center"><img src="assets/img/logo.png" alt="Pine" border="0" /></div>
+	<div id="container"></div>
+	<p style="text-align:center">
+		<small>
+			WASD or arrows to move &bull; t or enter for chat &bull; <a href="https://github.com/Open-RPG/open-rpg">Fork on Github</a><br />
+			Using <a href="https://sheetengine.codeplex.com">sheetengine</a> and <img src="assets/img/node.png" alt="Node.js" style="vertical-align:middle; padding-bottom: 9px;" />
+		</small>
+	</p>
+	<script src="assets/js/require_2_1_8.js"></script>
+	
+	<!-- 
+		Now we have the option to go for development or production versions
+		Simple add a <!-- before the <script> for the version you don't want
+	-->
+	
+	<!-- Production version -->
+	<!--
+	<script type="text/javascript" src="build/pine-0.0.1.js"></script> <!-- Leave this here -->
+	
+	<!-- Development version -->
+	<script type="text/javascript">
+	// Remember to update build-config.js too
+	require.config({
+		baseUrl: 'assets/js/',
+	    paths: {
+	    	'app' : 'app',
+	    	'socket': "socket.io",
+	        'jquery': "jquery-2.0.3.min",
+	        'open_rpg': "open-rpg/open-rpg-1",
+	        'chat' : 'open-rpg/chat-open-rpg',
+	        'map' : 'open-rpg/map_creation-open-rpg',
+	        'tree' : 'open-rpg/tree-model-open-rpg',
+	        'character' : 'open-rpg/character-open-rpg',
+	        'sheetengine': "sheetengine-src-1.2.0"
+	    },
+	    shim: {
+	    	'sheetengine': {
+				'exports': 'sheetengine'
+			},
+	    }
+	});
+	</script><!-- Leave this here -->
+	
+	<!-- App starter (Common to production/development) -->
+	<script type="text/javascript">
+	require(["app"],function(App){
+		var game = document.getElementById('container');
+
+		// Launch
+		App.init(game, {w:900,h:500});
+	});
+	</script>
+</body>
+</html>

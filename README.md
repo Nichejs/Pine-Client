@@ -1,4 +1,4 @@
-![Pine Game](public/assets/img/logo.png "Pine, the game")
+![Pine Game](assets/img/logo.png "Pine, the game")
 
 Official client for Pine Game.
 

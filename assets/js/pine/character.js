@@ -1,4 +1,4 @@
-define(["sheetengine", "map", "open_rpg"],function(sheetengine, MapOpenRPG, OpenRPG){
+define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){
 	
 	var Character = {};
 	
@@ -12,20 +12,22 @@ define(["sheetengine", "map", "open_rpg"],function(sheetengine, MapOpenRPG, Open
 			Character.move(person);
 		
 		// Insert a function to draw the player name
-		MapOpenRPG.addToStaticQueue(properties.name, function(){
+		Map.addToStaticQueue(properties.name, function(){
 			var ctx = sheetengine.context;
 			// Creating pos as follows will avoid referencing.
 			var pos = {x: properties.position.x, y: properties.position.y, z: properties.position.z + 30};
-			var p = MapOpenRPG.coordsGameToCanvas(pos);
+			var p = Map.coordsGameToCanvas(pos);
 			ctx.font="13px Helvetica, sans-serif";
 			ctx.strokeText(properties.name, p.u - properties.name.length*3, p.v, 200);
 		});
+
 		return person;
 	};
 	
 	// function for creating a character with a body and 2 legs
 	Character.defineCharacter = function(centerp) {
 		// character definition for animation with sheet motion
+
 		var body = new sheetengine.Sheet({x:0,y:0,z:15}, {alphaD:0,betaD:0,gammaD:0}, {w:11,h:14});
 		var backhead = new sheetengine.Sheet({x:0,y:-1,z:19}, {alphaD:0,betaD:0,gammaD:0}, {w:8,h:6});
 		backhead.context.fillStyle = '#550';
@@ -66,7 +68,7 @@ define(["sheetengine", "map", "open_rpg"],function(sheetengine, MapOpenRPG, Open
 		    
 		character.animationState = 0;
 		
-		MapOpenRPG.redraw();
+		Map.redraw();
 		
 		/**
 		 * Moves the character to specified position, takes care of orientation
@@ -95,7 +97,7 @@ define(["sheetengine", "map", "open_rpg"],function(sheetengine, MapOpenRPG, Open
 			Character.animateCharacter(character);
 			character.animationState++;
 			
-			MapOpenRPG.redraw();
+			Map.redraw();
 		};
 		
 		return character;
@@ -166,19 +168,19 @@ define(["sheetengine", "map", "open_rpg"],function(sheetengine, MapOpenRPG, Open
 			var dx = 0;
 			var dy = 0;
 			if (keys.u) {
-				dy = -5;
+				dy = -10;
 				character.setOrientation({alphaD:0,betaD:0,gammaD:180});
 			}
 			if (keys.d) {
-				dy = 5;
+				dy = 10;
 				character.setOrientation({alphaD:0,betaD:0,gammaD:0});
 			}
 			if (keys.l) {
-				dx = -5;
+				dx = -10;
 				character.setOrientation({alphaD:0,betaD:0,gammaD:270});
 			}
 			if (keys.r) {
-				dx = 5;
+				dx = 10;
 				character.setOrientation({alphaD:0,betaD:0,gammaD:90});
 			}
 			if (dx != 0)
@@ -188,7 +190,7 @@ define(["sheetengine", "map", "open_rpg"],function(sheetengine, MapOpenRPG, Open
 			jumpspeed -= 2;
 			
 			// get allowed target point. character's height is 20, and character can climb up to 10 pixels
-			var targetInfo = MapOpenRPG.densityMap.getTargetPoint(character.centerp, {x:dx, y:dy, z:jumpspeed}, 20, 10);
+			var targetInfo = Map.densityMap.getTargetPoint(character.centerp, {x:dx, y:dy, z:jumpspeed}, 20, 10);
 			var allowMove = targetInfo.allowMove;
 			var targetp = targetInfo.targetp;
 			var stopFall = targetInfo.stopFall;
@@ -205,15 +207,18 @@ define(["sheetengine", "map", "open_rpg"],function(sheetengine, MapOpenRPG, Open
 				character.setPosition(targetp);
 				Character.animateCharacter(character);
 				character.animationState++;
-				
-				// Set center on user
-				//sheetengine.scene.setCenter({x:character.centerp.x, y:character.centerp.y, z:0});
 				  
 				// Stream position data
-				OpenRPG.socket.emit('send', { room: 'position', position : targetp });
-				 
+				Main.socket.emit('send', { room: 'position', position : targetp });
+
 				// Calculate sheets and draw scene
-				MapOpenRPG.redraw();
+				Main.characterCoords = targetp;
+				Map.setCenter(Main.characterCoords);
+				if(Map.checkBoundaries(Main.characterCoords)){
+					Map.newYard();
+					console.log("A new yard has been load");
+				}
+				Map.redraw();
 			}
 		}
 		

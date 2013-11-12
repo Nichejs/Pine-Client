@@ -32,28 +32,7 @@ define(["jquery", "main"], function($, Main){
 			return $('<div class="menuPanel"><h3>Configuration</h3>No options available</div>').appendTo('#configMain').hide();
 		});
 		GUI.addConfigMenu('Character', 'user', 'text', function(){
-			var colors = [
-				'6A486B', 'AAA259', 'FBFFE6', 'FB8547', 'FDEC68', '253B57'
-			];
-			var obj = $('<div class="menuPanel"><h3>Character</h3><fieldset class="colorBoxes"><legend>Body color:</legend></fieldset><fieldset class="colorBoxes"><legend>Legs color:</legend></fieldset></div>').appendTo('#configMain').hide();
-			
-			// Insert color boxes
-			$(obj).find('.colorBoxes').each(function(){
-				for(var i=0; i<colors.length; i++){
-					$(this).append('<a href="#changeColor" class="box-small" style="background:'+colors[i]+'"></a>');
-				}
-			});
-			
-			
-			$('a[href=changeColors]').click(function(e){
-				e.preventDefault();
-				console.log("Changing colors");
-				Main.character.changeColors({
-					legs : Main.randColor(),
-					body : Main.randColor()
-				});
-			});
-			return obj;
+			return $('<div class="menuPanel"><h3>Character</h3>No options yet</div>').appendTo('#configMain').hide();
 		});
 		GUI.addConfigMenu('Log out', 'power-off', 'exec', function(){
 			window.location.reload();
@@ -85,6 +64,7 @@ define(["jquery", "main"], function($, Main){
 	 * 
 	 * @param {String} Name of the menu, it should be unique.
 	 * @param {String} Font-awesome icon name
+	 * @param {String} Element type, if it is 'text' it means it will open a menu. If it is 'exec' there is no menu element, and fn is executed.
 	 */
 	GUI.addConfigMenu = function(name, icon, type, fn){
 		// Display the button

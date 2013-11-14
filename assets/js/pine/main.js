@@ -7,7 +7,7 @@
  * License: GNU GENERAL PUBLIC LICENSE
  */
 
-define(["jquery", "socket"], function($, io){
+define(["jquery", "socket","sheetengine"], function($, io,sheetengine){
 	
 	var Main = {
 		character : null,
@@ -36,6 +36,8 @@ define(["jquery", "socket"], function($, io){
 		Main.canvas.canvasElement.height = Main.size.h;
 		Main.canvas.canvasElement.width = Main.size.w;
 		Main.canvas.size=Main.size;
+		sheetengine.scene.init(Main.canvas.canvasElement, {w:(Main.size.w*1.35),h:(Main.size.h*1.35)});
+		
 	};
 	
 	/**

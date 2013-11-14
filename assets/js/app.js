@@ -73,23 +73,24 @@ define(["jquery", "main", "chat", "map", "tree", "character", "socket"], functio
 			
 			// Setup map
 		 	Map.init();
+
 		 	
 		 	// Draw tree
-		 	Tree.newTree(-150,-120,0,80);
+		 	// Tree.newTree(-150,-120,0,80);
 		 	
-		 	Tree.newTree(80,40,0,60);
+		 	// Tree.newTree(80,40,0,60);
 		 	
-		 	Tree.newTree(20,500,0,120);
+		 	// Tree.newTree(20,500,0,120);
 		 	
-		 	Tree.newTree(-450,-90,0,110);
+		 	// Tree.newTree(-450,-90,0,110);
 		 	
-		 	Tree.newTree(-110,400,0,70);
+		 	// Tree.newTree(-110,400,0,70);
 		 	
-		 	Tree.newTree(-30,-50,0,90);
+		 	// Tree.newTree(-30,-50,0,90);
 			
 			// Main character
 			App.character = Character.newCharacter({
-				position: {x:110,y:0,z:0},
+				position: {x:0,y:0,z:0},
 				movable: true,
 				name: Main.user.name
 			});

@@ -97,7 +97,6 @@ define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){
 			Character.animateCharacter(character);
 			character.animationState++;
 			
-			Map.redraw();
 		};
 		
 		return character;
@@ -207,18 +206,27 @@ define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){
 				character.setPosition(targetp);
 				Character.animateCharacter(character);
 				character.animationState++;
+				
 				  
 				// Stream position data
 				Main.socket.emit('send', { room: 'position', position : targetp });
 
 				// Calculate sheets and draw scene
 				Main.characterCoords = targetp;
+				
+
 				Map.setCenter(Main.characterCoords);
+
 				if(Map.checkBoundaries(Main.characterCoords)){
-					Map.newYard();
+					clusterCoords = Map.coordsGlobalToCluster(Main.characterCoords);
+					Map.setBoundary(clusterCoords);
+					Map.loadAndRemoveSheets(clusterCoords);
+				
+				
 					console.log("A new yard has been load");
+				}else{
+					Map.redraw();
 				}
-				Map.redraw();
 			}
 		}
 		

@@ -220,10 +220,8 @@ define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){
 				if(Map.checkBoundaries(Main.characterCoords)){
 					clusterCoords = Map.coordsGlobalToCluster(Main.characterCoords);
 					Map.setBoundary(clusterCoords);
+					console.log("Character outside boundaries, request new sheets.");
 					Map.loadAndRemoveSheets(clusterCoords);
-				
-				
-					console.log("A new yard has been load");
 				}else{
 					Map.redraw();
 				}

@@ -16,25 +16,28 @@
 		redrawFlag : false,
 		redrawInterval : null,
 		boundary : {},
-		currentMap : [],
 		currentCenter : {x:0,y:0},
 		currentClusterBoundary : {},
-		basesheetloaded : [],
+		sheets : [],
 		staticQueue : [],
+		centertile: null
 	};
 	
 	/**
 	 * Set up the map and main character 
 	 */
-	 Map.init = function(){
-		// Now we set up the interval for the redraw method
-		// Read the description of the redraw method for more info
+	 Map.init = function(){		
+		Map.listenSocket();
 		
 		Map.setCenter(Main.characterCoords);
 		Map.currentClusterBoundary = {xmin:100000,xmax:1000000,ymin:100000,ymax:1000000};
+		
 		Map.loadAndRemoveSheets(Map.coordsGlobalToCluster(Main.characterCoords));
+		
 		Map.densityMap = new sheetengine.DensityMap(5);
-		Map.draw();
+		
+		// Now we set up the interval for the redraw method
+		// Read the description of the redraw method for more info
 		Map.redrawInterval = setInterval(function(){
 			if(!Map.redrawFlag) return;
 			// Flag was set to true, redraw and reset flag
@@ -72,12 +75,13 @@
 	 	return sheetengine.drawing.getPointuv(point);
 	 };
 
+	
 	 Map.coordsGlobalToCluster = function(point){
 	 	var clusterCoords = {} ;
 	 	clusterCoords.x = Math.round(point.x/200);
 	 	clusterCoords.y = Math.round(point.y/200);
 	 	return clusterCoords;
-	 }
+	 };
 
 	/**
 	 * sheetengine allows to draw directly on the canvas,
@@ -130,9 +134,11 @@
 		// Check flag, this way we ensure it is only drawn once.
 		if(!Map.drawFlag) return false;
 		Map.drawFlag = false;
+		
 		sheetengine.calc.calculateAllSheets();
 		sheetengine.drawing.drawScene(true);
-		//console.log("drawing the whole scene");
+		
+		console.log("Drawing the whole scene");
 	};
 	
 	/**
@@ -161,19 +167,19 @@
 	 };
 
 	/**
-	 *Set the area where the user can walk whithout having to
-	 *load a new yard
-	 *@param {object} the relative center of the actual yard {relyardx,relyardy,relyardz}
+	 * Set the area where the user can walk whithout having to
+	 * load a new yard
+	 * @param {object} the relative center of the actual yard {x,y,z}
 	 */
 	 Map.setBoundary = function(position) {
-				// for boundary we use relative yard coordinates
-				var radius = 0.5;
-				Map.boundary = {
-					xmin: (position.x - radius) * 200,
-					ymin: (position.y - radius) * 200,
-					xmax: (position.x + radius) * 200,
-					ymax: (position.y + radius) * 200
-				};
+		// for boundary we use relative yard coordinates
+		var radius = 0.5;
+		Map.boundary = {
+			xmin: (position.x - radius) * 200,
+			ymin: (position.y - radius) * 200,
+			xmax: (position.x + radius) * 200,
+			ymax: (position.y + radius) * 200
+		};
 		//console.log("boundary x:"+position.x+" y:"+position.y);
 	};
 
@@ -206,97 +212,118 @@
 				orientation: {alphaD: 90, betaD: 0, gammaD: 0},
 				size: {w:200,h:200},
 				init: function() { 
-					var basesheet = new sheetengine.BaseSheet({x:100,y:200}, this.orientation, this.size);
-					console.log("basesheet loaded on coordinate x: "+this.centerp.x+" y:"+this.centerp.y);
+					var basesheet = new sheetengine.BaseSheet(basesheets[i].centerp, {alphaD: 90, betaD: 0, gammaD: 0}, {w:200,h:200});
+					//console.log("Loaded on coordinates:",basesheets[i].centerp,"Color:",basesheets[i].color);
 					basesheet.color = basesheets[i].color;
 					return basesheet;
 				}
 			});
 		}
 		return map;
-
-
 	}
 
 	Map.loadAndRemoveSheets = function(centertile) {
-
-		var halfSizeClusterSide = 4;
-
-		var clusterBoundary = { xmin: (centertile.x - halfSizeClusterSide)*200,
-			xmax: (centertile.x  + halfSizeClusterSide)*200,
-			ymin: (centertile.y - halfSizeClusterSide)*200,
-			ymax: (centertile.y + halfSizeClusterSide)*200 };
-
-		Main.socket.emit('map', {coordinates:{x: centertile.x*200,y: centertile.y*200},size:{w:1600,h:1600}});
+		
+		console.log("Load and Remove for ",centertile);
+		
+		Map.centertile = centertile;
+		
+		// Request new area
+		Main.socket.emit('map', {coordinates:{x: Map.centertile.x*200,y: Map.centertile.y*200},size:{w:1600,h:1600} });
+	};
+	
+	// Listen in the socket for new sheets
+	Map.listenSocket = function(){
+		// Parse received sheets
 		Main.socket.on('map',function(data){
+			
+			Map.centertile = {
+				x: data.coordinates.x/200,
+				y: data.coordinates.y/200
+			};
+			
+			console.log("Received new sheets");
+			
 			var map = initBaseSheet(data.basesheets);
-
-	        // remove sheets that are far
-	        //console.log("Boundary{ xmin:"+boundary.xmin+" xmax:"+boundary.xmax+" ymin:"+boundary.ymin+" ymax:"+boundary.ymax);
+			
+			var halfSizeClusterSide = 4,
+			clusterBoundary = {
+				xmin: (Map.centertile.x - halfSizeClusterSide)*200,
+				xmax: (Map.centertile.x  + halfSizeClusterSide)*200,
+				ymin: (Map.centertile.y - halfSizeClusterSide)*200,
+				ymax: (Map.centertile.y + halfSizeClusterSide)*200
+			};
+			
+			// remove sheets that are far
+			//console.log("Boundary{ xmin:"+boundary.xmin+" xmax:"+boundary.xmax+" ymin:"+boundary.ymin+" ymax:"+boundary.ymax);
+			
+			for (var i=0;i<Map.sheets.length;i++) {
+				var sheetinfo = Map.sheets[i].basesheet;
+				//console.log("currentMap: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
+				if (sheetinfo.centerp.x < clusterBoundary.xmin || sheetinfo.centerp.x > clusterBoundary.xmax || sheetinfo.centerp.y < clusterBoundary.ymin || sheetinfo.centerp.y > clusterBoundary.ymax) {
+					
+					//console.log("removing: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
+					var locationInfo = Map.coordsGlobalToCluster(sheetinfo.centerp);
+					
+					for(var j=0;j<Map.sheets.length;j++){
+					
+						if(Map.sheets[j].center.x == locationInfo.x && Map.sheets[j].center.y == locationInfo.y){
+							
+							//Map.sheets[j].basesheet.color = '#FFFFFF';
+							Map.sheets[j].basesheet.destroy();	
+						}
+					}
+				}
+			}
+	
+	        //console.log("currentBoundary{ xmin:"+currentBoundary.xmin+" xmax:"+currentBoundary.xmax+" ymin:"+currentBoundary.ymin+" ymax:"+currentBoundary.ymax);
 	        
-	        for (var i=0;i<Map.currentMap.length;i++) {
-	        	var sheetinfo = Map.currentMap[i];
-	          //console.log("currentMap: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
-	          if (sheetinfo.centerp.x < clusterBoundary.xmin || sheetinfo.centerp.x > clusterBoundary.xmax || sheetinfo.centerp.y < clusterBoundary.ymin || sheetinfo.centerp.y > clusterBoundary.ymax) {
-	             //console.log("removing: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
-	             var locationInfo = Map.coordsGlobalToCluster(sheetinfo.centerp);
-
-	             for(var j=0;j<Map.basesheetloaded.length;j++){
-
-	             	if(Map.basesheetloaded[j].center.x == locationInfo.x && Map.basesheetloaded[j].center.y == locationInfo.y){
-	             		Map.basesheetloaded[j].basesheet.color = '#FFFFFF';
-	                //Map.basesheetloaded[j].basesheet.destroy();
-
-		            }
-		        }
-		    }
+	        // Add new sheets
+	        for (var i=0;i<map.length;i++) {
+	        	var sheetinfo = map[i];
+		         // console.log("Map: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
+		         if(sheetinfo.centerp.x < Map.currentClusterBoundary.xmin ||
+		         	sheetinfo.centerp.x > Map.currentClusterBoundary.xmax ||
+		         	sheetinfo.centerp.y < Map.currentClusterBoundary.ymin || 
+		         	sheetinfo.centerp.y > Map.currentClusterBoundary.ymax){
+		         		
+			         if(Map.checkIfLoaded(Map.coordsGlobalToCluster(sheetinfo.centerp))) continue;
+			         // console.log("asking for: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
+			         var locationInfo = Map.coordsGlobalToCluster(sheetinfo.centerp);
+			         //console.log("Draw new, cluster center: ", locationInfo);
+			         Map.sheets.push(
+			         {
+			         	basesheet: sheetinfo.init(),
+			         	center: locationInfo
+			         });
+		         }
+			 }	
+	
+	        // translate background
+	        sheetengine.scene.translateBackground(
+	        	{x:Map.currentCenter.x*200,y:Map.currentCenter.y*200}, 
+	        	{x:Map.centertile.x*200,y:Map.centertile.y*200}
+	        );
+	        Map.currentCenter = Map.centertile;
+	        Map.currentMap = map;
+	        Map.currentClusterBoundary = clusterBoundary;
+	        
+	        Map.drawFlag = true;
+	        Map.draw();
+		});
+	};
+	
+	Map.checkIfLoaded = function(center){
+		for (var i=0;i<Map.sheets.length;i++) {
+			if(Map.sheets[i].center == center){
+				console.log('Already loaded');
+				return true;
+			}
 		}
+		return false;
+	};
 
-        //console.log("currentBoundary{ xmin:"+currentBoundary.xmin+" xmax:"+currentBoundary.xmax+" ymin:"+currentBoundary.ymin+" ymax:"+currentBoundary.ymax);
-        // add new sheets
-        for (var i=0;i<map.length;i++) {
-        	var sheetinfo = map[i];
-	         // console.log("Map: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
-	         if (sheetinfo.centerp.x < Map.currentClusterBoundary.xmin ||
-	         	sheetinfo.centerp.x > Map.currentClusterBoundary.xmax ||
-	         	sheetinfo.centerp.y < Map.currentClusterBoundary.ymin || 
-	         	sheetinfo.centerp.y > Map.currentClusterBoundary.ymax){
-
-	             // console.log("asking for: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
-		         console.log("x: "+sheetinfo.centerp.x+" y:"+sheetinfo.centerp.y);
-		         var locationInfo = Map.coordsGlobalToCluster(sheetinfo.centerp);
-		         Map.basesheetloaded.push(
-		         {
-		         	basesheet: sheetinfo.init(),
-		         	center: locationInfo
-		         });
-
-
-		     }
-
-		 }
-
-
-        // translate background
-        sheetengine.scene.translateBackground(
-        	{x:Map.currentCenter.x*200,y:Map.currentCenter.y*200}, 
-        	{x:centertile.x*200,y:centertile.y*200}
-        	);
-        Map.currentCenter = centertile;
-        Map.currentMap = map;
-        Map.currentClusterBoundary = clusterBoundary;
-        // This should be change in order to 
-		// only move the map when the character
-		// reach an edge.
-		sheetengine.calc.calculateAllSheets();
-		sheetengine.drawing.drawScene(true);
-	});
-
-}
-
-
-
-return Map;
+	return Map;
 });
 
 

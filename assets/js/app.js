@@ -172,7 +172,7 @@ define(["jquery", "main", "chat", "map", "tree", "character", "socket"], functio
 		});
 		
 		Main.socket.on('error', function (err) {
-			window.location = '/';
+			//window.location = '/';
 			console.error("Error de conextion: ",err);
 		});
 	};

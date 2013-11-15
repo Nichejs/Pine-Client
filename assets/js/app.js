@@ -7,7 +7,7 @@
  * 
  * License: GNU GENERAL PUBLIC LICENSE
  */
-define(["jquery", "main", "chat", "map", "tree", "character", "socket"], function($, Main, Chat, Map, Tree, Character, io){
+define(["jquery", "main", "chat", "map", "character", "socket"], function($, Main, Chat, Map, Character, io){
 	
 	var App = {
 		lastTimestamp : 0,	// Used for measuring ping

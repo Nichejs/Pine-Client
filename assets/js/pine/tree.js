@@ -1,4 +1,4 @@
-define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){ //Module name
+define(["sheetengine", "main"],function(sheetengine, Main){ //Module name
 
 	var Tree = {};
 
@@ -20,7 +20,7 @@ define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){ //Module
 		tree.z_position = z+size/2; // Fix for height*80
 		tree.size = {w: size, h: size}; // For some reason it doesn't work if h != w
 		
-		Tree.drawPineTexture(tree);
+		return Tree.drawPineTexture(tree);
 	};
 	
 	/**
@@ -58,11 +58,7 @@ define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){ //Module
     	drawStructure(sheet4.context);
     	drawStructure(sheet5.context);
 		
-		var treeSheets = [sheet4,sheet5];
-		
-		Map.addToDensityMap(treeSheets);
-		
-		Map.redraw();
+		return treeSheets = [sheet4,sheet5];
 	};
 
 	return Tree;

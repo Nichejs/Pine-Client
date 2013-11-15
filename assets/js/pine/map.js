@@ -6,7 +6,7 @@
  * License: GNU GENERAL PUBLIC LICENSE
  */
 
- define(["main", "sheetengine"],function(Main, sheetengine){
+ define(["main", "sheetengine", "tree"],function(Main, sheetengine, Tree){
 
  	var Map = {
 		// Config options
@@ -20,7 +20,8 @@
 		currentClusterBoundary : {},
 		sheets : [],
 		staticQueue : [],
-		centertile: null
+		centertile: null,
+		objects: []
 	};
 	
 	/**
@@ -294,7 +295,33 @@
 			         	center: locationInfo
 			         });
 		     	}
-			 }	
+			 }
+			 
+			// Add resources
+			console.log("Adding "+data.resources.length+" resources");
+			console.log(data.resources);
+			for(var i=0;i<data.resources.length;i++){
+				var elem = data.resources[i];
+				var sheets = null;
+				switch(elem.type){
+					case 'tree':
+						if(Map.checkIfObjectExists(elem.coordinates)) continue;
+						sheets = Tree.newTree(
+							elem.coordinates.x,
+							elem.coordinates.y,
+							elem.coordinates.z,
+							elem.properties.size
+						);
+						break;
+				}
+				
+				Map.objects.push({
+					center : elem.coordinates,
+					sheets : sheets
+				});
+				
+				Map.addToDensityMap(sheets);
+			}
 	
 	        // translate background
 	        sheetengine.scene.translateBackground(
@@ -308,6 +335,16 @@
 	        Map.drawFlag = true;
 	        Map.draw();
 		});
+	};
+	
+	Map.checkIfObjectExists = function(center){
+		for (var i=0;i<Map.objects.length;i++) {
+			if(Map.objects[i].center == center){
+				console.log('Object already loaded');
+				return true;
+			}
+		}
+		return false;
 	};
 	
 	Map.checkIfLoaded = function(center){

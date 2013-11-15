@@ -164,27 +164,32 @@ define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){
 		window.onkeyup = function(event) { setKeys(event, 0); };
 		
 		function loop() {
-			var dx = 0;
-			var dy = 0;
+			var dx = 0,
+				dy = 0,
+				dir= 0;
+				
 			if (keys.u) {
 				dy = -10;
-				character.setOrientation({alphaD:0,betaD:0,gammaD:180});
+				dir = 180;
+				
 			}
 			if (keys.d) {
 				dy = 10;
-				character.setOrientation({alphaD:0,betaD:0,gammaD:0});
+				dir = 0;
 			}
 			if (keys.l) {
 				dx = -10;
-				character.setOrientation({alphaD:0,betaD:0,gammaD:270});
+				dir = 270;
 			}
 			if (keys.r) {
 				dx = 10;
-				character.setOrientation({alphaD:0,betaD:0,gammaD:90});
+				dir = 90;
 			}
 			if (dx != 0)
 				dy = 0;
-			    
+			
+			character.setOrientation({alphaD:0,betaD:0,gammaD:dir});
+			
 			// character constantly falls
 			jumpspeed -= 2;
 			
@@ -221,7 +226,7 @@ define(["sheetengine", "map", "main"],function(sheetengine, Map, Main){
 					clusterCoords = Map.coordsGlobalToCluster(Main.characterCoords);
 					Map.setBoundary(clusterCoords);
 					console.log("Character outside boundaries, request new sheets.");
-					Map.loadAndRemoveSheets(clusterCoords);
+					Map.loadAndRemoveSheets(clusterCoords, dir);
 				}else{
 					Map.redraw();
 				}

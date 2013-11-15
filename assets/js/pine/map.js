@@ -67,7 +67,7 @@
 	 };
 
 	/**
-	 * Transform a point in the game to a canvas point. 
+	 * Transform a point in the game to a canvas point.
 	 * @param {Object} A point in the game {x,y,z}
 	 * @return {Object} A canvas coordinate object {u,v}
 	 */
@@ -155,8 +155,7 @@
 	 * 
 	 * @param {Object} A point in the game {x,y,z}
 	 */
-
-	 Map.setCenter = function(point){
+	Map.setCenter = function(point){
 
 	 	//The z position of the scene will allways be 0
 	 	//so when the character jump the center of the scene
@@ -173,7 +172,7 @@
 	 */
 	 Map.setBoundary = function(position) {
 		// for boundary we use relative yard coordinates
-		var radius = 0.5;
+		var radius = 0.75;
 		Map.boundary = {
 			xmin: (position.x - radius) * 200,
 			ymin: (position.y - radius) * 200,
@@ -204,17 +203,17 @@
 	function initBaseSheet(basesheets){
 		var map = [];
 		
-		for(var i=0;i<basesheets.length-1;i++){
+		for(var i=0;i<basesheets.length;i++){
 
 			map.push({
 
 				centerp: basesheets[i].centerp,
 				orientation: {alphaD: 90, betaD: 0, gammaD: 0},
 				size: {w:200,h:200},
+				color: basesheets[i].color,
 				init: function() { 
-					var basesheet = new sheetengine.BaseSheet(basesheets[i].centerp, {alphaD: 90, betaD: 0, gammaD: 0}, {w:200,h:200});
-					//console.log("Loaded on coordinates:",basesheets[i].centerp,"Color:",basesheets[i].color);
-					basesheet.color = basesheets[i].color;
+					var basesheet = new sheetengine.BaseSheet(this.centerp, this.orientation, this.size);
+					basesheet.color = this.color;
 					return basesheet;
 				}
 			});
@@ -250,8 +249,8 @@
 			clusterBoundary = {
 				xmin: (Map.centertile.x - halfSizeClusterSide)*200,
 				xmax: (Map.centertile.x  + halfSizeClusterSide)*200,
-				ymin: (Map.centertile.y - halfSizeClusterSide)*200,
-				ymax: (Map.centertile.y + halfSizeClusterSide)*200
+				ymin: (Map.centertile.y + halfSizeClusterSide)*200,
+				ymax: (Map.centertile.y - halfSizeClusterSide)*200
 			};
 			
 			// remove sheets that are far
@@ -281,7 +280,6 @@
 	        // Add new sheets
 	        for (var i=0;i<map.length;i++) {
 	        	var sheetinfo = map[i];
-		         // console.log("Map: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
 		         if(sheetinfo.centerp.x < Map.currentClusterBoundary.xmin ||
 		         	sheetinfo.centerp.x > Map.currentClusterBoundary.xmax ||
 		         	sheetinfo.centerp.y < Map.currentClusterBoundary.ymin || 
@@ -290,13 +288,12 @@
 			         if(Map.checkIfLoaded(Map.coordsGlobalToCluster(sheetinfo.centerp))) continue;
 			         // console.log("asking for: { x:"+sheetinfo.centerp.x+" ymax:"+sheetinfo.centerp.y);
 			         var locationInfo = Map.coordsGlobalToCluster(sheetinfo.centerp);
-			         //console.log("Draw new, cluster center: ", locationInfo);
 			         Map.sheets.push(
 			         {
 			         	basesheet: sheetinfo.init(),
 			         	center: locationInfo
 			         });
-		         }
+		     	}
 			 }	
 	
 	        // translate background

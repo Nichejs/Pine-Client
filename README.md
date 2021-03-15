@@ -5,7 +5,7 @@ Official client for Pine Game.
 The graphic engine is [Sheetengine](http://sheetengine.codeplex.com/)
 
 ### Contributors
-- Alejandro U. Álvarez [http://urbanoalvarez](http://urbanoalvarez.es)
+- Alejandro U. Álvarez [http://aurbano.eu](https://aurbano.eu)
 - Nicolás Lozano Argüelles
 - Qiming Fang [http://qimingfang.com](http://qimingfang.com)
 
